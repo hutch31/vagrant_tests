@@ -1,0 +1,24 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ghutchison/openeda"
+  config.vm.box_version = "2018.02.23"
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "512"
+  end
+
+  config.vm.define "subhost1", primary: true do |subhost1|
+    subhost1.vm.network "private_network", ip: "192.168.110.10"
+  end
+  config.vm.define "exec1" do |exec1|
+    exec1.vm.network "private_network", ip: "192.168.110.11"
+  end
+  config.vm.define "exec2" do |exec2|
+    exec2.vm.network "private_network", ip: "192.168.110.12"
+  end
+  #config.vm.provision :shell, path: "install_oge.sh"
+  #config.vm.provision :shell, path: "install_nomad.sh"
+  config.vm.provision "ansible" do |ansible|
+    ansible.groups = { "submit" => ["subhost1"], "exec" => ["exec[1:2]"] }
+    ansible.playbook = "playbook.yml"
+  end
+end
+

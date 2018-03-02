@@ -1,0 +1,78 @@
+---
+- hosts: all
+  remote_user: vagrant
+  become: yes
+  tasks:
+  - name: Configure host/domain name
+    hostname: 
+      name: "{{ inventory_hostname }}"
+
+  - name: Add entries to hosts file
+    action: lineinfile path=/etc/hosts line={{item}} owner=root group=root mode=644
+    with_items:
+      - "192.168.110.10 subhost1"
+      - "192.168.110.11 exec1"
+      - "192.168.110.12 exec2"
+
+#  - name: Update cache
+#    apt:
+#      update_cache: yes
+  - name: Install required packages
+    action: apt pkg={{item}} state=installed
+    with_items:
+      - curl
+      - unzip
+      - vim
+      - apt-transport-https
+      - ca-certificates
+      - software-properties-common
+      - systemd
+  - name: Create nomad config dir
+    action: file path=/etc/{{item}} state=directory mode=0755 owner=bin group=bin
+    with_items:
+      - nomad.d
+      - consul.d
+  - name: Install nomad from local zip file
+    unarchive:
+      src: nomad.zip
+      dest: /usr/bin
+  - name: Install consul from local zip file
+    unarchive:
+      src: consul.zip
+      dest: /usr/bin
+  - name: Instal consul config file
+    template:
+      src: consul.service.j2
+      dest: /etc/systemd/system/consul.service
+      owner: bin
+      group: bin
+      mode: 644    
+  - name: Enable consul service
+    systemd: enabled=yes name=consul.service
+  - name: Start consul service
+    systemd: state=started name=consul
+
+- hosts: submit
+  remote_user: vagrant
+  become: yes
+  tasks:
+  - name: Provision nomad config file
+    template:
+      src: server.hcl.j2
+      dest: /etc/nomad.d/server.hcl
+      owner: bin
+      group: bin
+      mode: 644    
+
+- hosts: exec
+  remote_user: vagrant
+  become: yes
+  tasks:
+  - name: Provision nomad config file
+    template:
+      src: client.hcl.j2
+      dest: /etc/nomad.d/client.hcl
+      owner: bin
+      group: bin
+      mode: 644    
+
