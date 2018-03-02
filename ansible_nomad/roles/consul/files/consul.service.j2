@@ -5,7 +5,7 @@
 
         [Service]
         Restart=on-failure
-        ExecStart=/usr/bin/consul agent -dev -node {{ inventory_hostname }}
+        ExecStart=/usr/bin/consul agent -node {{ inventory_hostname }}
         ExecReload=/bin/kill -HUP $MAINPID
 
         [Install]

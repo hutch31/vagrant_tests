@@ -1,0 +1,44 @@
+- name: set defaultdomain
+  copy: src=roles/common/files/defaultdomain dest=/etc/defaultdomain
+  notify:
+    - restart rpcbind 
+    - restart ypbind
+  
+- name: set ypservers
+  template: src=roles/common/files/yp.conf dest=/etc/yp.conf
+  notify: 
+    - restart rpcbind
+    - restart ypbind
+
+- name: nis installed
+  apt: pkg=nis state=latest
+  notify:
+    - restart rpcbind
+    - restart ypbind
+  
+- name : set nsswitch
+  copy: src=roles/common/files/nsswitch.conf dest=/etc/nsswitch.conf
+  notify:
+    - restart rpcbind 
+    - restart ypbind
+
+#- name: Set NIS master in /etc/default/nis
+#  lineinfile:
+#    path: /etc/default/nis
+#    regexp: "^NISSERVER="
+#    line: NISSERVER={{nisserver}}
+#- lineinfile:
+#    path: /etc/default/nis
+#    regexp: "^NISMASTER="
+#    line: NISMASTER={{nismaster}}
+#
+#- name: Remove default access line
+#  lineinfile:
+#    path: /etc/ypserv.securenets
+#    regexp: "^0.0.0.0"
+#    state: absent
+#- name: Add our subnet
+#  lineinfile:
+#    path: /etc/ypserv.securenets
+#    line: "255.255.255.0 192.168.110.0"
+#
