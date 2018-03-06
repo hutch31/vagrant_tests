@@ -1,0 +1,28 @@
+---
+- hosts: subhost1
+  vars:
+    users: ['ghutchison', 'jdoe']
+    syncfiles: ['passwd', 'shadow', 'group']
+  remote_user: vagrant
+  become: yes
+  tasks:
+    - name: Create new user
+      user: name="{{item}}" state=present
+      with_items: 
+        - "{{users}}"
+    - name: Copy password and group files
+      fetch: src=/etc/{{item}} dest=files/{{item}} flat=yes
+      with_items:
+        - "{{syncfiles}}"
+
+- hosts: all:!subhost1
+  vars:
+    syncfiles: ['passwd', 'shadow', 'group']
+  remote_user: vagrant
+  become: yes
+  tasks:
+    - name: Push group files on to clients
+      copy: src=files/{{item}} dest=/etc/{{item}}
+      with_items:
+        - "{{syncfiles}}"
+
