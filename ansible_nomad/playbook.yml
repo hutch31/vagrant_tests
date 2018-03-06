@@ -13,45 +13,77 @@
       - "192.168.110.10 subhost1"
       - "192.168.110.11 exec1"
       - "192.168.110.12 exec2"
+#  - name: Update packages
+#    apt: update_cache=yes
+
   roles:
     - common
-    - consul
+#    - consul
 
-- hosts: submit
+#- hosts: submit
+#  remote_user: vagrant
+#  become: yes
+#  tasks:
+#  - name: Provision nomad config file
+#    template:
+#      src: server.hcl.j2
+#      dest: /etc/nomad.d/server.hcl
+#      owner: bin
+#      group: bin
+#      mode: 644    
+
+#
+# Generate an SSH key for the master machine, and copy the key files back to the provisioner
+- hosts: subhost1
   remote_user: vagrant
-  become: yes
-  roles:
-    - nismaster
+  become: no
   tasks:
-  - name: Provision nomad config file
-    template:
-      src: server.hcl.j2
-      dest: /etc/nomad.d/server.hcl
-      owner: bin
-      group: bin
-      mode: 644    
+    - name: Generate ssh key
+      command: ssh-keygen -f /home/vagrant/.ssh/id_rsa -N "" creates=/home/vagrant/.ssh/id_rsa
 
-- hosts: ~submit
+    - name: Copy generated ssh key back to host
+      fetch:
+        src: /home/vagrant/.ssh/id_rsa.pub
+        flat: yes
+        dest: roles/common/files/{{inventory_hostname}}.pub
+
+    - name: Copy private ssh key back to host
+      fetch:
+        src: /home/vagrant/.ssh/id_rsa
+        flat: yes
+        dest: roles/common/files/{{inventory_hostname}}.secret
+
+- hosts: all:!subhost1
   remote_user: vagrant
-  become: yes
+  become: no
   tasks:
-    - name: Bogus
-      lineinfile:
-        path: /etc/hosts 
-        line: "# this is just a comment"
-        owner: root 
-        group: root 
-        mode: 644
+    - name: Provision keys from subhost1
+      copy: src=roles/common/files/subhost1.pub dest=/home/vagrant/.ssh/id_rsa.pub
+    - copy: src=roles/common/files/subhost1.secret dest=/home/vagrant/.ssh/id_rsa
+    - copy: src=roles/common/files/ssh_config dest=/home/vagrant/.ssh/config
+    - name: Update authorized keys
+      action: authorized_key user=vagrant key="{{lookup('file', 'roles/common/files/subhost1.pub')}}"
 
-- hosts: exec
-  remote_user: vagrant
-  become: yes
-  tasks:
-  - name: Provision nomad config file
-    template:
-      src: client.hcl.j2
-      dest: /etc/nomad.d/client.hcl
-      owner: bin
-      group: bin
-      mode: 644    
+# Now that SSH remote is set up, sync the password file
+#- hosts: all:!submit
+#  remote_user: vagrant
+#  become: yes
+#  tasks:
+#    - name: Synchronize password files
+#      synchronize:
+#        src: /etc/passwd
+#        dest: /etc/passwd
+#      delegate_to: subhost1
 
+#- hosts: exec
+#  remote_user: vagrant
+#  become: yes
+#  tasks:
+#  - name: Provision nomad config file
+#    template:
+#      src: client.hcl.j2
+#      dest: /etc/nomad.d/client.hcl
+#      owner: bin
+#      group: bin
+#      mode: 644    
+#

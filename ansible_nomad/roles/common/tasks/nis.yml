@@ -1,3 +1,7 @@
+# Added this for Ubuntu bug where rpcbind doesn't start on boot
+#- name: start rpcbind
+#  service: name=rpcbind enabled=yes state=stopped
+
 - name: set defaultdomain
   copy: src=roles/common/files/defaultdomain dest=/etc/defaultdomain
   notify:
