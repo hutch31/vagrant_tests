@@ -1,0 +1,34 @@
+---
+- hosts: all
+  vars:
+    version: 1.0.4
+    thirdparty: 0.4.6
+  remote_user: vagrant
+  become: yes
+  tasks:
+  - name: Add packages
+    apt:  pkg={{item}} state=latest
+    with_items:
+      - docker
+      - docker-compose
+      - python
+      - nodejs
+      - curl
+      - golang
+
+  - name: Add docker containers
+    docker: state=present image=hyperledger/fabric-{{item}}:{{version}}
+    with_items:
+      - peer
+      - orderer
+      - ccenv
+      - javaenv
+      - tools
+
+  - name: Add third party docker containers
+    docker: state=present image=hyperledger/fabric-{{item}}:{{thirdparty}}
+    with_items:
+      - couchdb
+      - kafka
+      - zookeeper
+
