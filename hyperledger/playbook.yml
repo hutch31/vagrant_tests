@@ -1,7 +1,9 @@
 ---
 - hosts: all
   vars:
-    version: 1.0.4
+    arch: x86_64
+    uarch: linux-amd64
+    version: 1.0.6
     thirdparty: 0.4.6
   remote_user: vagrant
   become: yes
@@ -17,18 +19,20 @@
       - golang
 
   - name: Add docker containers
-    docker: state=present image=hyperledger/fabric-{{item}}:{{version}}
+    docker: state=present image=hyperledger/fabric-{{item}}:{{arch}}-{{version}}
     with_items:
       - peer
       - orderer
       - ccenv
       - javaenv
       - tools
-
-  - name: Add third party docker containers
-    docker: state=present image=hyperledger/fabric-{{item}}:{{thirdparty}}
-    with_items:
       - couchdb
       - kafka
       - zookeeper
+
+  - name: Download binaries
+    #command: curl https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric/{{arch}}-{{version}}/hyperledger-fabric-{{arch}}-{{version}}.tar.gz  creates=hyperledger-fabric-{{arch}}-{{version}}.tar.gz
+    get_url:
+      url: https://nexus.hyperledger.org/content/repositories/releases/org/hyperledger/fabric/hyperledger-fabric/{{uarch}}-{{version}}/hyperledger-fabric-{{uarch}}-{{version}}.tar.gz  
+      dest: /tmp
 
