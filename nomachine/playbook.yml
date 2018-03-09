@@ -1,0 +1,40 @@
+---
+
+# Install python2 blindly
+- hosts: all
+  gather_facts: false
+  remote_user: vagrant
+  become: yes
+  tasks:
+  - name: Install python2
+    raw: test -e /user/bin/python || (apt -y update && apt install -y python-minimal)
+
+- hosts: all
+#  vars:
+#    arch: x86_64
+#    uarch: linux-amd64
+#    version: 1.0.6
+#    thirdparty: 0.4.6
+#    containers: 
+#      - peer
+#      - orderer
+#      - ccenv
+#      - javaenv
+#      - tools
+#      - couchdb
+#      - kafka
+#      - zookeeper
+#      - ca
+  remote_user: vagrant
+  become: yes
+  tasks:
+    # apt-add-repository -y ppa:freenx-team
+  - name: Add x2go repo
+    apt_repository: repo='ppa:x2go/stable'
+
+  - name: Add packages
+    apt:  pkg={{item}} state=latest
+    with_items:
+      - x2goserver
+      - x2goserver-xsession
+
