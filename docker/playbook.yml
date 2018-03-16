@@ -1,0 +1,21 @@
+---
+# Install python2 blindly
+- hosts: all
+  gather_facts: false
+  remote_user: vagrant
+  become: yes
+  tasks:
+  - name: Install python2
+    raw: test -e /user/bin/python || (apt -y update && apt install -y python-minimal)
+
+- hosts: all
+  remote_user: vagrant
+  become: yes
+  tasks:
+  - name: Add packages
+    apt:  pkg={{item}} state=latest
+    with_items:
+      - docker
+      - docker-compose
+      - python3
+
