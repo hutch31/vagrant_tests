@@ -8,4 +8,12 @@ cd yosys
 make config-clang
 make
 make install
+cd ..
+rm -rf yosys
+
+# Clean up build packages
+apt-get remove -y build-essential clang bison flex git mercurial
+apt-get purge
+apt-get autoremove
+apt-get autoclean
 
