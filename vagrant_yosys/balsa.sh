@@ -1,6 +1,6 @@
 
 sudo apt-get update
-sudo apt-get install -y guile-1.8 libglib2.0-dev libgtk2.0-dev
+sudo apt-get install -y guile-1.8 libglib2.0-dev libgtk2.0-dev libgmp-dev
 
 cd /vagrant
 if [ ! -f balsa-4.0.tar.gz ]; then
