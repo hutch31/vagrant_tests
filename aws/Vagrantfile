@@ -9,9 +9,12 @@ Vagrant.configure('2') do |config|
   config.vm.synced_folder "rsync", "/home/ubuntu/rsync", type: "rsync"
 
   # Use dummy AWS box
-  config.vm.box = 'aws-dummy'
+  config.vm.box = 'dummy'
 
-  config.vm.provision :shell, path: "bootstrap.sh"
+  #config.vm.provision :shell, path: "vpn-bootstrap.sh"
+  config.vm.provision "ansible" do |ansible|
+    ansible.playbook = "playbook.yml"
+  end
 
   # Create rsync folder on local to remote
 
@@ -22,18 +25,18 @@ Vagrant.configure('2') do |config|
     aws.secret_access_key = ENV['AWS_SECRET_ACCESS_KEY']
 
     # Specify SSH keypair to use
-    aws.keypair_name = 'vagrant-test'
+    aws.keypair_name = 'vpn-testing'
 
     # Specify region, AMI ID, and security group(s)
     aws.region = 'us-west-2'
     aws.ami = 'ami-20be7540'
-    #aws.instance_type = 't2.micro'
-    aws.instance_type = 'm4.xlarge'
-    aws.security_groups = ['vagrant']
+    aws.instance_type = 't2.micro'
+    #aws.instance_type = 'm4.xlarge'
+    aws.security_groups = ['vpn']
 
     # Specify username and private key path
     override.ssh.username = 'ubuntu'
-    override.ssh.private_key_path = 'vagrant-test.pem'
+    override.ssh.private_key_path = 'vpn-testing.pem.txt'
   end
 end
 
